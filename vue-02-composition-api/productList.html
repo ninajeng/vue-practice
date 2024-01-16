@@ -34,7 +34,7 @@
                         </tr>
                     </tbody>
                 </table>
-                <p>目前有 {{ products.length }} 項產品</p>
+                <p>目前有 {{ Object.keys(products).length }} 項產品</p>
             </div>
             <div class="col-lg-5">
                 <h2 class="mb-3">單一產品細節</h2>
@@ -61,6 +61,7 @@
     
 
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="all.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.5/axios.min.js"></script>
+    <script src="./productList.js"></script>
 </body>
 </html>
