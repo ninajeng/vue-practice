@@ -22,14 +22,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(product, key) in products" :key="'product' + key">
+                        <tr v-for="(product, key) in products" :key="product.id">
                             <td>{{ product.title }}</td>
                             <td>{{ product.origin_price }}</td>
                             <td>{{ product.price }}</td>
                             <td class="text-success" v-if="product.is_enabled">啟用</td>
                             <td class="text-danger" v-else>未啟用</td>
                             <td>
-                                <button type="button" class="btn btn-sm btn-primary" @click="temp = product">查看細節</button>
+                                <button type="button" class="btn btn-sm btn-primary" @click="tempProduct = product">查看細節</button>
                             </td>
                         </tr>
                     </tbody>
@@ -38,27 +38,26 @@
             </div>
             <div class="col-lg-5">
                 <h2 class="mb-3">單一產品細節</h2>
-                <div v-if="temp.title">
+                <div v-if="tempProduct.title">
                     <div class="card">
                         <div class="text-center" style="height: 300px;">
-                            <img :src="temp.imageUrl" :alt="temp.title" class="h-100">
+                            <img :src="tempProduct.imageUrl" :alt="tempProduct.title" class="h-100">
                         </div>
                         <div class="p-3">
-                            <h5 class="pt-2">{{ temp.title }}<span class="badge bg-primary ms-2">{{ temp.category }}</span></h5>
-                            <p>{{ temp.description }}</p>
-                            <p>商品內容：{{ temp.content }}</p>
-                            <p class="mb-0">{{ temp.price }}<span class="ms-2 text-decoration-line-through text-muted">{{ temp.origin_price }}</span> 元 / {{ temp.unit }}</p>
+                            <h5 class="pt-2">{{ tempProduct.title }}<span class="badge bg-primary ms-2">{{ tempProduct.category }}</span></h5>
+                            <p>{{ tempProduct.description }}</p>
+                            <p>商品內容：{{ tempProduct.content }}</p>
+                            <p class="mb-0">{{ tempProduct.price }}<span class="ms-2 text-decoration-line-through text-muted">{{ tempProduct.origin_price }}</span> 元 / {{ tempProduct.unit }}</p>
                         </div>
                     </div>
                     <div class="py-3">
-                        <img class="me-3" :src="img" :alt="'image' + key" v-for="(img, key) in temp.imagesUrl" :key="'img' + key" style="height: 100px;">
+                        <img class="me-3" :src="img" :alt="'image' + key" v-for="(img, key) in tempProduct.imagesUrl" :key="'img' + key" style="height: 100px;">
                     </div>
                 </div>
                 <p class="text-muted" v-else>請選擇一個商品查看</p>
             </div>
         </div>
     </div>
-    
 
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.5/axios.min.js"></script>

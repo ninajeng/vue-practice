@@ -3,7 +3,7 @@ const { createApp, ref, onBeforeMount } = Vue
 const app = createApp({
   setup(){
     const products = ref({})
-    const temp = ref({})
+    const tempProduct = ref({})
     const BASE_URL = 'https://ec-course-api.hexschool.io/'
     const CHECK_PATH = 'v2/api/user/check'
     const GETDATA_PATH = 'v2/api/vegetableshop/admin/products'
@@ -43,7 +43,7 @@ const app = createApp({
     })
 
     return{
-      products, temp
+      products, tempProduct
     }
   }
 })

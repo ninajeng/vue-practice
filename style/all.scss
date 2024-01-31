@@ -1,0 +1,9 @@
+$blue:    #4153bd;
+
+@import "../node_modules/bootstrap/scss/bootstrap";
+
+.custom-popover {
+    --bs-popover-bg: var(--bs-secondary);
+    --bs-popover-body-color: var(--bs-white);
+    --bs-popover-border-color: var(--bs-secondary);
+}

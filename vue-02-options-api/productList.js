@@ -4,7 +4,7 @@ const app = createApp({
     data(){
         return{
             products: {},
-            temp: {},
+            tempProduct: {},
             BASE_URL: 'https://ec-course-api.hexschool.io/',
             CHECK_PATH: 'v2/api/user/check',
             GETDATA_PATH: 'v2/api/vegetableshop/admin/products'
