@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/vue-loading-overlay@6/dist/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.4/sweetalert2.min.css">
+    <link rel="stylesheet" href="../style/all.css">
+    <style>
+        div:where(.swal2-container) button:where(.swal2-styled).swal2-default-outline:focus {
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">    
+    </div>
+
+    <script type="text/x-template" id="productListView">
+        <loading-view :active="isLoading"></loading-view>
+        <product-modal :product-data="tempProduct" ref="ProductModal" @update-product="updateProduct"></product-modal>
+        <delete-modal ref="DeleteModal" @delete-product="deleteProduct"></delete-modal>
+        <success-alert ref="SuccessAlert"></success-alert>
+        <div class="container py-5">
+            <div class="d-flex justify-content-between mb-4 align-items-center flex-wrap">
+                <h2>產品列表</h2>
+                <button type="button" class="btn btn-primary" @click="editProduct">建立新的產品</button>
+            </div>
+            <div class="text-nowrap overflow-x-auto">
+                <table class="table table-hover align-middle" >
+                    <thead>
+                        <tr>
+                            <th width="120">分類</th>
+                            <th>產品名稱</th>
+                            <th width="120" class="text-end">原價</th>
+                            <th width="120" class="text-end pe-4">售價</th>
+                            <th width="120">是否啟用</th>
+                            <th width="120">編輯</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="product in products" :key="products.id">
+                            <td>{{ product.category }}</td>
+                            <td>{{ product.title }}</td>
+                            <td class="text-end">{{ product.origin_price }}</td>
+                            <td class="text-end pe-4">{{ product.price }}</td>
+                            <td :class="product.is_enabled ? 'text-success' : 'text-muted'">{{ product.is_enabled ? '啟用' : '未啟用' }}</td>
+                            <td>
+                                <div class="input-group flex-nowrap">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" @click="editProduct(product)">編輯</button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" @click="deleteConfirm(product)">刪除</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3">
+                <pagination-component :pagination="pagination" @set-page="setPage"></pagination-component>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/x-template" id="productModalView">
+        <div class="modal fade" ref="modal">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header bg-dark text-white">
+                        <h1 class="modal-title fs-5">{{ `${productData.id ? '編輯' : '新增'}產品` }}</h1>
+                        <button type="button" class="btn-close" @click="hide"></button>
+                    </div>
+                    <div class="modal-body px-4">
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <div class="mb-3">
+                                    <label for="imageUrl" class="form-label">主圖片網址</label>
+                                    <input type="text" id="imageUrl" class="form-control" placeholder="請輸入主圖片網址" v-model="productData.imageUrl">
+                                    <img :src="productData.imageUrl" :alt="productData.title" class="img-fluid mt-3" v-if="productData.imageUrl">
+                                </div>
+                                <div v-if="!productData.imagesUrl.length">
+                                    <p class="mb-2">次要圖片</p>
+                                </div>
+                                <div class="mb-3" v-for="(url, key) in productData.imagesUrl" :key="'url' + key">
+                                    <label :for="`imageUrl${key}`" class="form-label">{{ `次要圖片${key + 1}` }}</label>
+                                    <div class="input-group mb-3">
+                                        <input type="text" :id="`imageUrl${key}`" class="form-control" placeholder="請輸入次要圖片網址" v-model="productData.imagesUrl[key]">
+                                        <button type="button" class="btn btn-outline-danger" :class="{'disabled': !productData.imagesUrl.length}" @click="productData.imagesUrl.splice(key, 1)">刪除圖片</button>
+                                    </div>
+                                    <img :src="url" :alt="`產品圖片：${productData.title}-${key + 1}`" class="img-fluid" v-if="url">
+                                </div>
+                                <button type="button" class="btn btn-outline-primary w-100 mb-3" @click="productData.imagesUrl.push('')" v-if="this.productData.imagesUrl.length < 5 && (!this.productData.imagesUrl.length
+                                    || this.productData.imagesUrl[this.productData.imagesUrl.length - 1])">新增圖片欄位</button>
+                                <span class="d-block" ref="popover" data-bs-trigger="hover" data-bs-content="圖片數量已達上限" data-bs-placement="bottom" data-bs-custom-class="custom-popover">
+                                    <button type="button" class="btn btn-outline-primary w-100 mb-1 disabled" v-show="this.productData.imagesUrl.length >= 5">新增圖片欄位</button>
+                                </span>
+                            </div>
+                            <div class="col-lg-8">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">主圖片標題*</label>
+                                    <input type="text" id="title" class="form-control" :class="{'is-invalid': productData.title === '' || validate('title')}" placeholder="請輸入標題" v-model="productData.title" @input="removeError('title')">
+                                    <div class="invalid-feedback">
+                                        標題欄位為必填
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="category" class="form-label">分類*</label>
+                                            <input type="text" id="category" class="form-control" :class="{'is-invalid': productData.category === '' || validate('category')}" placeholder="請輸入分類" v-model="productData.category" @input="removeError('category')">
+                                            <div class="invalid-feedback">
+                                                分類欄位為必填
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="unit" class="form-label">單位*</label>
+                                            <input type="text" id="unit" class="form-control" :class="{'is-invalid': productData.unit === '' || validate('unit')}" placeholder="請輸入單位" v-model="productData.unit" @input="removeError('unit')">
+                                            <div class="invalid-feedback">
+                                                單位欄位為必填
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="originPrice" class="form-label">原價*</label>
+                                            <input type="number" id="originPrice" class="form-control" :class="{'is-invalid': productData.origin_price === '' || validate('origin_price')}" placeholder="請輸入原價" v-model="productData.origin_price" @input="removeError('origin_price')">
+                                            <div class="invalid-feedback">
+                                                原價欄位為必填
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="price" class="form-label">售價*</label>
+                                            <input type="number" id="price" class="form-control" :class="{'is-invalid': productData.price === '' || validate('price')}" placeholder="請輸入售價" v-model="productData.price" @input="removeError('price')">
+                                            <div class="invalid-feedback">
+                                                售價欄位為必填
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr class="mt-0">
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">產品描述</label>
+                                    <textarea id="description" class="form-control" placeholder="請輸入產品描述" v-model="productData.description"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="content" class="form-label">說明內容</label>
+                                    <textarea id="content" class="form-control" placeholder="請輸入說明內容" v-model="productData.content"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" id="enable" class="form-check-input" :true-value="1" :false-value="0" v-model="productData.is_enabled">
+                                        <label for="enable" class="form-check-label">{{ `是否啟用：${productData.is_enabled ? '啟用' : '未啟用'}` }}</label>
+                                      </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn text-muted" @click="hide">取消</button>
+                        <button type="button" class="btn btn-primary" @click="updateProduct">{{ productData.id ? '更新' : '新增' }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/x-template" id="PaginationView">
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li class="page-item">
+                    <a class="page-link" href="#" :class="{'disabled': !pagination.has_pre}" @click.prevent="$emit('setPage', pagination.current_page - 1)">
+                    <span>&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item" v-for="(page, key) in pagination.total_pages" :key="'page' + key">
+                    <a class="page-link" href="#" :class="{'active': pagination.current_page === page}" @click.prevent="$emit('setPage', page)">{{ page }}</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="#" :class="{'disabled': !pagination.has_next}" @click.prevent="$emit('setPage', pagination.current_page + 1)">
+                    <span>&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </script>
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.5/axios.min.js"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-loading-overlay@6"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.4/sweetalert2.min.js"></script>
+    <script type="module" src="./JS/productList.js"></script>
+</body>
+</html>

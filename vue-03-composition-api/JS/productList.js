@@ -34,16 +34,12 @@ const app = createApp({
       axios.defaults.headers.common.Authorization = token
       axios.post(`${BASE_URL}${CHECK_PATH}`).then(res => {
         if(!res.data.success) {
-          alert(res.data.message)
-          isLoading.value = false
-          location.replace('./login.html')
+          showErrorAlert(res.data.message, './login.html')
         }else{
           getData()
         }
       }).catch(e => {
-        alert(e.response.data.message)
-        isLoading.value = false
-        location.replace('./login.html')
+        showErrorAlert(e.response.data.message, './login.html')
       })
     }
 
@@ -56,9 +52,11 @@ const app = createApp({
           products.value = res.data.products
           isLoading.value = false
         }else{
-          alert(res.data.message)
+          showErrorAlert(res.data.message, './login.html')
         }
-      }).catch(e => alert(e.response.data.message))
+      }).catch(e => {
+        showErrorAlert(e.response.data.message, './login.html')
+      })
     }
 
     const editProduct = (data) => {
@@ -90,8 +88,7 @@ const app = createApp({
           showSuccessAlert(res.data.message)
           getData()
         }).catch(e => {
-          isLoading = false
-          alert(e.response.data.message)
+          showErrorAlert(e.response.data.message)
         })
     }
 
@@ -117,8 +114,7 @@ const app = createApp({
         showSuccessAlert(res.data.message)
         getData()
       }).catch(e => {
-        isLoading.value = false
-        alert(e.response.data.message)
+        showErrorAlert(e.response.data.message)
       })
     }
 
@@ -128,6 +124,21 @@ const app = createApp({
         icon: "success",
         showConfirmButton: false,
         timer: 1500
+      });
+    }
+
+    const showErrorAlert = (title, replace) => {
+      isLoading.value = false
+      Swal.fire({
+        icon: "error",
+        title,
+        confirmButtonText: "確認",
+        timer: 2000,
+        timerProgressBar: true,
+      }).then(() => {
+        if(replace){
+          location.replace(replace)
+        }
       });
     }
 

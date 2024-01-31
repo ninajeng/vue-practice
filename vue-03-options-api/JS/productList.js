@@ -34,16 +34,12 @@ const app = createApp({
         axios.defaults.headers.common.Authorization = token
         axios.post(`${this.BASE_URL}${this.CHECK_PATH}`).then(res => {
           if(!res.data.success) {
-            alert(res.data.message)
-            this.isLoading = false
-            location.replace('./login.html')
+            this.showErrorAlert(res.data.message, './login.html')
           }else{
             this.getData()
           }
         }).catch(e => {
-          alert(e.response.data.message)
-          this.isLoading = false
-          location.replace('./login.html')
+          this.showErrorAlert(e.response.data.message, './login.html')
         })
       },
       getData(){
@@ -55,9 +51,11 @@ const app = createApp({
             this.products = res.data.products
             this.isLoading = false
           }else{
-            alert(res.data.message)
+            this.showErrorAlert(res.data.message)
           }
-        }).catch(e => alert(e.response.data.message))
+        }).catch(e => {
+          this.showErrorAlert(e.response.data.message)
+        })
       },
       editProduct(data = {}){
         this.formInvalidate = []
@@ -87,8 +85,7 @@ const app = createApp({
             this.showSuccessAlert(res.data.message)
             this.getData()
           }).catch(e => {
-            this.isLoading = false
-            alert(e.response.data.message)
+            this.showErrorAlert(e.response.data.message)
           })
       },
       deleteConfirm(product){
@@ -113,8 +110,7 @@ const app = createApp({
           this.showSuccessAlert(res.data.message)
           this.getData()
         }).catch(e => {
-          this.isLoading = false
-          alert(e.response.data.message)
+          this.showErrorAlert(e.response.data.message)
         })
       },
       showSuccessAlert(title){
@@ -123,6 +119,20 @@ const app = createApp({
           icon: "success",
           showConfirmButton: false,
           timer: 1500
+        });
+      },
+      showErrorAlert(title, replace){
+        this.isLoading = false
+        Swal.fire({
+          icon: "error",
+          title,
+          confirmButtonText: "確認",
+          timer: 2000,
+          timerProgressBar: true,
+        }).then(() => {
+          if(replace){
+            location.replace(replace)
+          }
         });
       },
       setPage(page){
